@@ -1,11 +1,9 @@
-from tools.github_tools import (
-    get_repo_info,
-    list_repo_files,
-    read_repo_file,
-)
+from tools.base_handlers import BASE_HANDLERS
+from tools.subagent_tools import run_subagent
 
 TOOL_HANDLERS = {
-    "get_repo_info": get_repo_info,
-    "list_repo_files": list_repo_files,
-    "read_repo_file": read_repo_file,
+    **BASE_HANDLERS,
+    "task": run_subagent,
 }
+
+SUB_HANDLERS = dict(BASE_HANDLERS)

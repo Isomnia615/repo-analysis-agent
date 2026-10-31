@@ -1,5 +1,8 @@
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
+
+WORKDIR = Path.cwd()
 HOOKS = {"UserPromptSubmit": [], "PreToolUse": [], "PostToolUse": [], "Stop": []}
 
 @dataclass
@@ -29,6 +32,8 @@ READ_ONLY_TOOLS = {
     "get_repo_info",
     "list_repo_files",
     "read_repo_file",
+    "todo_write",
+    "task",
 }
 
 DENIED_FILENAMES = {
@@ -96,11 +101,22 @@ def count_tool_hook(context,output):
         f"累计调用 {TOOL_CALL_COUNTS[name]} 次"
     )
 
+def context_inject_hook(query: str):
+    print(f"\033[90m[HOOK] UserPromptSubmit: working in {WORKDIR}\033[0m")
+    return None
+
+def summary_hook(messages: list):
+    tool_count = sum(1 for m in messages
+                     if m.get("role") == "tool")
+    print(f"\033[90m[HOOK] Stop: session used {tool_count} tool calls\033[0m")
+    return None
 
 # 注册执行前 Hook
 register_hook("PreToolUse", log_hook)
 register_hook("PreToolUse", permission_hook)
+register_hook("UserPromptSubmit", context_inject_hook)
 
 # 注册执行后 Hook
 register_hook("PostToolUse", large_output_hook)
 register_hook("PostToolUse", count_tool_hook)
+register_hook("Stop", summary_hook)
