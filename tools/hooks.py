@@ -34,6 +34,7 @@ READ_ONLY_TOOLS = {
     "read_repo_file",
     "todo_write",
     "task",
+    "load_skill",
 }
 
 DENIED_FILENAMES = {

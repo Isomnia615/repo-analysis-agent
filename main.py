@@ -1,8 +1,9 @@
 import json
-
-from config.prompts import SYSTEM
+from config.prompts import ENVIRONMENT_PROMPT, WORK_PROMPT
+from tools.skill_tools import SKILL_LOADER
 from config.llm import client, MODEL
 from tools.tool_schemas import TOOLS
+from tools.skill_tools import WORKDIR
 from tools.registry import TOOL_HANDLERS
 from tools.hooks import(
     ToolCallContext,
@@ -10,8 +11,22 @@ from tools.hooks import(
 )
 from tools.execute_tool import execute_tool
 
+def build_system_prompt() -> str:
+    return (
+        f"你是一个运行在 {WORKDIR} 目录下的编程智能体。当前环境信息：{ENVIRONMENT_PROMPT}。"
+        "请使用可用工具完成用户交代的编程任务。"
+        f"任务执行规则：{WORK_PROMPT}"
+        "优先采取实际行动，而不是仅仅解释解决方案。"
+        "在任务完成后，简要说明执行结果。\n\n"
+        f"当前可用的skill列表：\n{SKILL_LOADER.catalog()}\n\n"
+        "当某项skill适用于当前任务时，必须使用 load_skill 工具读取该skill的完整说明，并按照skill说明执行任务。"
+    )
 
-def agent_loop(messages: list, max_rounds: int = 8):
+
+SYSTEM = build_system_prompt()
+
+
+def agent_loop(messages: list, max_rounds: int = 30):
     """持续调用模型和工具，直到模型结束或达到轮数上限。"""
 
     rounds_since_todo = 0
@@ -95,16 +110,23 @@ def agent_loop(messages: list, max_rounds: int = 8):
 
 
 if __name__ == "__main__":
+    print("Repo Analysis Agent: Skill Loading")
+    print("Enter a question, press Enter to send. Type q to quit.\n")
+
     history = []
 
     while True:
-        question = input("\nrepo-agent >> ").strip()
-
-        if question.lower() in {"exit", "quit", "q"}:
+        try:
+            question = input("\033[36mrepo-agent >> \033[0m").strip()
+        except (EOFError, KeyboardInterrupt):
+            print()
             break
 
         if not question:
             continue
+
+        if question.lower() in {"q", "exit", "quit"}:
+            break
 
         trigger_hooks("UserPromptSubmit", question)
         history.append({

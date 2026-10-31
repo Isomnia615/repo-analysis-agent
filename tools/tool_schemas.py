@@ -86,6 +86,20 @@ TOOLS = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "load_skill",
+            "description": "Load the full SKILL.md content by skill name.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string"},
+                },
+                "required": ["name"],
+            },
+        },
+    },
 ]
 
 BASE_TOOLS = [{
@@ -157,6 +171,9 @@ BASE_TOOLS = [{
             },
         },
     },
+
+    {"name": "load_skill", "description": "Load the full SKILL.md content by skill name.",
+     "input_schema": {"type": "object", "properties": {"name": {"type": "string"}}, "required": ["name"]}},
 ]
 
 SUB_TOOLS = list(BASE_TOOLS)
